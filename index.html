@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TG Drive">
+<link rel="manifest" href="manifest.json">
+<title>Telegram Drive</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#07070d; --surface:#0f0f1a; --surface2:#16162a; --surface3:#1e1e35;
+  --border:#ffffff0f; --border2:#ffffff1a;
+  --accent:#4f8ef7; --accent2:#7c5af7; --accent3:#00d4aa;
+  --text:#e8e8f0; --text2:#9090b0; --text3:#5a5a80;
+  --danger:#f74f6b; --radius:14px; --radius-sm:8px;
+  --font:'Syne',sans-serif; --mono:'DM Mono',monospace;
+  --shadow:0 8px 32px rgba(0,0,0,.5);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);overflow:hidden;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+
+/* APP SHELL */
+#app{height:100vh;display:flex;flex-direction:column;position:relative}
+
+/* AUTH */
+#auth-screen{flex:1;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse 80% 60% at 50% 0%,#1a0f3a44,transparent)}
+.auth-card{width:100%;max-width:400px;background:var(--surface);border:1px solid var(--border2);border-radius:24px;padding:40px 32px;box-shadow:var(--shadow),0 0 80px #4f8ef710;position:relative;overflow:hidden}
+.auth-card::before{content:'';position:absolute;top:-1px;left:20%;right:20%;height:2px;background:linear-gradient(90deg,transparent,var(--accent),var(--accent2),transparent)}
+.auth-logo{display:flex;align-items:center;gap:12px;margin-bottom:32px}
+.auth-logo-icon{width:48px;height:48px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 20px #4f8ef740}
+.auth-logo h1{font-size:22px;font-weight:800;letter-spacing:-.5px}
+.auth-logo h1 span{color:var(--accent)}
+.auth-step{display:none}
+.auth-step.active{display:block}
+.auth-step h2{font-size:18px;font-weight:700;margin-bottom:6px}
+.auth-step p{color:var(--text2);font-size:13px;font-family:var(--mono);line-height:1.5;margin-bottom:24px}
+.input-group{margin-bottom:16px}
+.input-group label{display:block;font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.input-group input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:13px 16px;color:var(--text);font-family:var(--mono);font-size:15px;outline:none;transition:border-color .2s,box-shadow .2s}
+.input-group input:focus{border-color:var(--accent);box-shadow:0 0 0 3px #4f8ef720}
+.input-group input::placeholder{color:var(--text3)}
+.btn{width:100%;padding:14px 20px;border:none;border-radius:var(--radius-sm);font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 4px 20px #4f8ef740}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 28px #4f8ef750}
+.btn-primary:active{transform:translateY(0)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2);margin-top:8px;font-size:13px}
+.btn-ghost:hover{background:var(--surface2);color:var(--text)}
+.auth-info{margin-top:20px;padding:12px;background:#4f8ef710;border:1px solid #4f8ef730;border-radius:var(--radius-sm);font-size:12px;font-family:var(--mono);color:var(--accent);line-height:1.6}
+.otp-inputs{display:flex;gap:8px;margin-bottom:20px}
+.otp-inputs input{flex:1;text-align:center;padding:14px 8px;font-size:20px;font-weight:700}
+
+/* MAIN APP */
+#main-app{flex:1;display:none;flex-direction:column;overflow:hidden}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;z-index:10}
+.topbar-logo{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:800}
+.topbar-logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.topbar-logo span{color:var(--accent)}
+.breadcrumb{flex:1;display:flex;align-items:center;gap:4px;overflow:hidden;font-family:var(--mono);font-size:12px;color:var(--text2)}
+.breadcrumb-item{cursor:pointer;padding:4px 8px;border-radius:6px;white-space:nowrap;transition:background .15s,color .15s;max-width:100px;overflow:hidden;text-overflow:ellipsis}
+.breadcrumb-item:hover{background:var(--surface2);color:var(--text)}
+.breadcrumb-item.active{color:var(--text);cursor:default}
+.breadcrumb-sep{color:var(--text3);flex-shrink:0}
+.topbar-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.icon-btn{width:36px;height:36px;border:none;border-radius:9px;background:transparent;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:background .15s,color .15s}
+.icon-btn:hover{background:var(--surface2);color:var(--text)}
+
+/* TOOLBAR */
+.toolbar{display:flex;align-items:center;gap:8px;padding:8px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.toolbar-search{flex:1;display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px}
+.toolbar-search input{flex:1;border:none;background:transparent;color:var(--text);font-family:var(--mono);font-size:13px;outline:none}
+.toolbar-search input::placeholder{color:var(--text3)}
+.storage-bar{display:flex;align-items:center;gap:8px;padding:6px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.storage-track{flex:1;height:3px;background:var(--surface3);border-radius:3px;overflow:hidden}
+.storage-fill{height:100%;background:linear-gradient(90deg,var(--accent3),var(--accent));border-radius:3px;width:15%}
+.storage-label{font-family:var(--mono);font-size:10px;color:var(--text3);white-space:nowrap}
+
+/* FILE AREA */
+#file-area{flex:1;overflow-y:auto;overflow-x:hidden;padding:16px;position:relative}
+#file-area.drag-over{background:#4f8ef708;outline:2px dashed var(--accent);outline-offset:-8px}
+.section-header{font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;margin-top:8px;display:flex;align-items:center;gap:8px}
+.section-header::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* FOLDERS */
+.folders-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:20px}
+.folder-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 12px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:8px;position:relative;overflow:hidden;user-select:none}
+.folder-item::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));opacity:0;transition:opacity .2s}
+.folder-item:hover{border-color:var(--border2);background:var(--surface2);transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.folder-item:hover::before{opacity:1}
+.folder-item:active{transform:translateY(0)}
+.folder-icon{font-size:36px;line-height:1}
+.folder-name{font-size:12px;font-weight:600;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%}
+.folder-count{font-size:10px;font-family:var(--mono);color:var(--text3)}
+
+/* FILES GRID */
+.files-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.files-grid.list-view{grid-template-columns:1fr;gap:2px}
+.file-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:all .2s;position:relative;user-select:none}
+.file-item:hover{border-color:var(--border2);background:var(--surface2)}
+.file-item:active{transform:scale(.98)}
+.file-item.selected{border-color:var(--accent);background:#4f8ef710}
+.file-thumb{width:100%;aspect-ratio:1;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:40px;position:relative;overflow:hidden}
+.file-thumb img{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0}
+.play-overlay{position:absolute;width:36px;height:36px;background:rgba(0,0,0,.6);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;backdrop-filter:blur(4px)}
+.file-info{padding:10px}
+.file-name{font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:3px}
+.file-meta{font-size:10px;font-family:var(--mono);color:var(--text3)}
+.files-grid.list-view .file-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:var(--radius-sm)}
+.files-grid.list-view .file-thumb{width:40px;height:40px;aspect-ratio:1;border-radius:8px;flex-shrink:0;font-size:20px}
+.files-grid.list-view .file-info{flex:1;padding:0;display:flex;align-items:center;gap:12px;overflow:hidden}
+.files-grid.list-view .file-name{flex:1}
+.files-grid.list-view .file-meta{flex-shrink:0}
+
+/* FILE TYPE COLORS */
+.ft-image{color:#4fc3f7} .ft-video{color:#ce93d8} .ft-audio{color:#80cbc4}
+.ft-doc{color:#ef9a9a} .ft-pdf{color:#ff8a65} .ft-archive{color:#ffe082} .ft-other{color:var(--text3)}
+
+/* CONTEXT MENU */
+.context-menu{position:fixed;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:6px;min-width:180px;box-shadow:var(--shadow);z-index:1000;display:none;animation:fadeInScale .15s ease}
+.context-menu.visible{display:block}
+@keyframes fadeInScale{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+.context-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--text2);transition:background .15s,color .15s}
+.context-item:hover{background:var(--surface3);color:var(--text)}
+.context-item.danger{color:var(--danger)}
+.context-item.danger:hover{background:#f74f6b15}
+.context-sep{height:1px;background:var(--border);margin:4px 0}
+
+/* BOTTOM NAV */
+.bottom-nav{display:flex;background:var(--surface);border-top:1px solid var(--border);padding:8px 0 max(8px,env(safe-area-inset-bottom));flex-shrink:0}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px;cursor:pointer;border:none;background:transparent;color:var(--text3);transition:color .2s;font-family:var(--font)}
+.nav-item.active{color:var(--accent)}
+.nav-icon{font-size:20px}
+.nav-label{font-size:10px;font-weight:600;letter-spacing:.3px}
+
+/* FAB */
+.fab{position:fixed;bottom:calc(72px + max(8px,env(safe-area-inset-bottom)) + 16px);right:20px;width:56px;height:56px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;box-shadow:0 4px 20px #4f8ef750,0 8px 40px #4f8ef730;transition:all .2s;z-index:100;color:#fff}
+.fab:active{transform:scale(.95)}
+.fab-menu{position:fixed;bottom:calc(72px + max(8px,env(safe-area-inset-bottom)) + 80px);right:12px;display:flex;flex-direction:column;gap:8px;z-index:99;transform:scale(.8) translateY(20px);opacity:0;pointer-events:none;transition:all .2s cubic-bezier(.34,1.56,.64,1);transform-origin:bottom right}
+.fab-menu.open{transform:scale(1) translateY(0);opacity:1;pointer-events:all}
+.fab-menu-item{display:flex;align-items:center;gap:10px;justify-content:flex-end;cursor:pointer}
+.fab-menu-label{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;box-shadow:var(--shadow)}
+.fab-menu-btn{width:42px;height:42px;border-radius:14px;border:none;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;flex-shrink:0;color:#fff}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:200;display:none;align-items:flex-end;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-overlay.visible{display:flex}
+.modal{width:100%;background:var(--surface);border-radius:24px 24px 0 0;padding:24px 20px max(24px,env(safe-area-inset-bottom));border-top:1px solid var(--border2);animation:slideUp .3s cubic-bezier(.34,1.2,.64,1);max-height:90vh;overflow-y:auto}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:40px;height:4px;background:var(--surface3);border-radius:4px;margin:0 auto 20px}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:6px}
+.modal-sub{font-size:12px;font-family:var(--mono);color:var(--text2);margin-bottom:24px}
+.modal-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:13px 16px;color:var(--text);font-family:var(--font);font-size:15px;outline:none;margin-bottom:16px;transition:border-color .2s}
+.modal-input:focus{border-color:var(--accent)}
+
+/* PREVIEW */
+.preview-overlay{align-items:stretch}
+.preview-modal{background:var(--bg);border-radius:0;padding:0;max-height:100vh;overflow:hidden}
+.preview-modal-inner{display:flex;flex-direction:column;height:100vh;width:100%}
+.preview-header{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surface);border-bottom:1px solid var(--border)}
+.preview-title{flex:1;font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.preview-body{flex:1;display:flex;align-items:center;justify-content:center;padding:16px;overflow:hidden}
+.preview-body img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px}
+.preview-body video,.preview-body audio{width:100%;border-radius:8px}
+.preview-body iframe{width:100%;height:100%;border:none;border-radius:8px}
+
+/* UPLOAD TOAST */
+.upload-toast{position:fixed;bottom:calc(72px + max(8px,env(safe-area-inset-bottom)) + 16px);left:16px;right:calc(56px + 20px + 16px);background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:12px 16px;box-shadow:var(--shadow);z-index:150;display:none}
+.upload-toast.visible{display:block}
+.upload-toast-name{font-size:12px;font-weight:600;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.upload-toast-track{height:3px;background:var(--surface3);border-radius:3px;overflow:hidden}
+.upload-toast-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent3));border-radius:3px;transition:width .3s ease}
+.upload-toast-meta{font-size:10px;font-family:var(--mono);color:var(--text3);margin-top:4px;display:flex;justify-content:space-between}
+
+/* EMPTY / LOADING */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;color:var(--text3);text-align:center;gap:12px}
+.empty-icon{font-size:64px;opacity:.5}
+.empty-state h3{font-size:16px;color:var(--text2)}
+.empty-state p{font-size:12px;font-family:var(--mono);line-height:1.5;max-width:260px}
+.loading-spinner{display:inline-block;width:28px;height:28px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* TOAST */
+.toast-container{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;width:calc(100% - 32px);max-width:400px}
+.toast{background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:12px 16px;font-size:13px;font-family:var(--mono);box-shadow:var(--shadow);animation:toastIn .3s cubic-bezier(.34,1.2,.64,1);display:flex;align-items:center;gap:10px}
+@keyframes toastIn{from{transform:translateY(-12px) scale(.92);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+.toast.error{border-color:var(--danger);color:var(--danger)}
+.toast.success{border-color:var(--accent3);color:var(--accent3)}
+.toast.info{border-color:var(--accent);color:var(--accent)}
+
+/* SETTINGS */
+.settings-section{margin-bottom:24px}
+.settings-section h3{font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.settings-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.settings-item{display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
+.settings-item:last-child{border-bottom:none}
+.settings-item:hover{background:var(--surface2)}
+.settings-item-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.settings-item-info{flex:1}
+.settings-item-name{font-size:14px;font-weight:600}
+.settings-item-desc{font-size:11px;font-family:var(--mono);color:var(--text3);margin-top:1px}
+.settings-item-value{font-size:12px;font-family:var(--mono);color:var(--text3)}
+
+/* PAGES */
+.page{display:none;flex:1;overflow:hidden;flex-direction:column}
+.page.active{display:flex}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- AUTH SCREEN -->
+  <div id="auth-screen">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="auth-logo-icon">✈️</div>
+        <h1>TG <span>Drive</span></h1>
+      </div>
+
+      <!-- STEP 1: API CREDENTIALS -->
+      <div class="auth-step active" id="step-api">
+        <h2>Connect to Telegram</h2>
+        <p>Get your API credentials from <strong>my.telegram.org</strong> → API Development Tools</p>
+        <div class="input-group">
+          <label>API ID</label>
+          <input type="number" id="inp-api-id" placeholder="12345678" autocomplete="off">
+        </div>
+        <div class="input-group">
+          <label>API Hash</label>
+          <input type="text" id="inp-api-hash" placeholder="0123456789abcdef..." autocomplete="off">
+        </div>
+        <button class="btn btn-primary" onclick="App.goToPhone()">Continue →</button>
+        <div class="auth-info">🔐 Tus credenciales se guardan solo en este dispositivo. Sin servidores de terceros.</div>
+      </div>
+
+      <!-- STEP 2: PHONE -->
+      <div class="auth-step" id="step-phone">
+        <h2>Número de Teléfono</h2>
+        <p>Ingresa tu número de Telegram con código de país</p>
+        <div class="input-group">
+          <label>Teléfono</label>
+          <input type="tel" id="inp-phone" placeholder="+52 123 456 7890" autocomplete="tel">
+        </div>
+        <button class="btn btn-primary" id="btn-send-code" onclick="App.sendCode()">Enviar Código →</button>
+        <button class="btn btn-ghost" onclick="App.goToStep('step-api')">← Atrás</button>
+      </div>
+
+      <!-- STEP 3: CODE -->
+      <div class="auth-step" id="step-code">
+        <h2>Código de Verificación</h2>
+        <p>Ingresa el código enviado a tu app de Telegram</p>
+        <div class="otp-inputs">
+          <input type="tel" maxlength="1" class="otp-digit input-group input" data-idx="0">
+          <input type="tel" maxlength="1" class="otp-digit input-group input" data-idx="1">
+          <input type="tel" maxlength="1" class="otp-digit input-group input" data-idx="2">
+          <input type="tel" maxlength="1" class="otp-digit input-group input" data-idx="3">
+          <input type="tel" maxlength="1" class="otp-digit input-group input" data-idx="4">
+        </div>
+        <button class="btn btn-primary" id="btn-verify" onclick="App.verifyCode()">Verificar →</button>
+        <button class="btn btn-ghost" onclick="App.goToStep('step-phone')">← Atrás</button>
+      </div>
+
+      <!-- STEP 4: 2FA -->
+      <div class="auth-step" id="step-2fa">
+        <h2>Contraseña 2FA</h2>
+        <p>Tu cuenta tiene verificación en dos pasos activada.</p>
+        <div class="input-group">
+          <label>Contraseña</label>
+          <input type="password" id="inp-2fa" placeholder="Tu contraseña 2FA">
+        </div>
+        <button class="btn btn-primary" onclick="App.verify2FA()">Iniciar Sesión →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="main-app">
+    <div class="topbar">
+      <div class="topbar-logo">
+        <div class="topbar-logo-icon">✈️</div>
+        TG <span>Drive</span>
+      </div>
+      <div class="breadcrumb" id="breadcrumb">
+        <span class="breadcrumb-item active" onclick="App.navToRoot()">Home</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn" id="btn-view-toggle" onclick="App.toggleView()" title="Vista">⊞</button>
+        <button class="icon-btn" onclick="App.refresh()" title="Refrescar">⟳</button>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="toolbar-search">
+        <span style="color:var(--text3);font-size:14px">🔍</span>
+        <input type="search" id="search-input" placeholder="Buscar archivos..." oninput="App.search(this.value)">
+      </div>
+    </div>
+
+    <div class="storage-bar">
+      <span class="storage-label">∞ Almacenamiento Ilimitado</span>
+      <div class="storage-track"><div class="storage-fill"></div></div>
+      <span class="storage-label">Telegram Cloud</span>
+    </div>
+
+    <!-- FILES PAGE -->
+    <div class="page active" id="page-files">
+      <div id="file-area"
+        ondragover="App.onDragOver(event)"
+        ondragleave="App.onDragLeave()"
+        ondrop="App.onDrop(event)">
+        <div id="file-content">
+          <div class="empty-state">
+            <div class="loading-spinner"></div>
+            <h3>Iniciando...</h3>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS PAGE -->
+    <div class="page" id="page-settings">
+      <div style="overflow-y:auto;flex:1;padding:16px">
+        <div class="settings-section">
+          <h3>Cuenta</h3>
+          <div class="settings-card">
+            <div class="settings-item">
+              <div class="settings-item-icon" style="background:#4f8ef720">👤</div>
+              <div class="settings-item-info">
+                <div class="settings-item-name" id="settings-username">Cargando...</div>
+                <div class="settings-item-desc" id="settings-phone">Cuenta de Telegram</div>
+              </div>
+            </div>
+            <div class="settings-item" onclick="App.logout()">
+              <div class="settings-item-icon" style="background:#f74f6b20">🚪</div>
+              <div class="settings-item-info">
+                <div class="settings-item-name" style="color:var(--danger)">Cerrar Sesión</div>
+                <div class="settings-item-desc">Borrar sesión y credenciales</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3>Visualización</h3>
+          <div class="settings-card">
+            <div class="settings-item" onclick="App.toggleView()">
+              <div class="settings-item-icon" style="background:#7c5af720">🗂️</div>
+              <div class="settings-item-info">
+                <div class="settings-item-name">Modo de Vista</div>
+                <div class="settings-item-desc">Grid o Lista</div>
+              </div>
+              <div class="settings-item-value" id="view-mode-label">Grid</div>
+            </div>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3>Almacenamiento</h3>
+          <div class="settings-card">
+            <div class="settings-item">
+              <div class="settings-item-icon" style="background:#00d4aa20">☁️</div>
+              <div class="settings-item-info">
+                <div class="settings-item-name">Telegram Cloud</div>
+                <div class="settings-item-desc">Almacenamiento ilimitado via MTProto</div>
+              </div>
+              <div class="settings-item-value">∞</div>
+            </div>
+            <div class="settings-item" onclick="App.clearCache()">
+              <div class="settings-item-icon" style="background:#f7a84f20">🧹</div>
+              <div class="settings-item-info">
+                <div class="settings-item-name">Limpiar Caché</div>
+                <div class="settings-item-desc">Eliminar datos en caché</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3>Acerca de</h3>
+          <div class="settings-card">
+            <div class="settings-item">
+              <div class="settings-item-icon" style="background:#4f8ef720">ℹ️</div>
+              <div class="settings-item-info">
+                <div class="settings-item-name">TG Drive Android PWA</div>
+                <div class="settings-item-desc">v2.0 · @mtproto/core · Sin servidores externos</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" id="nav-files" onclick="App.navTo('files')">
+        <span class="nav-icon">📁</span><span class="nav-label">Archivos</span>
+      </button>
+      <button class="nav-item" id="nav-recent" onclick="App.navTo('recent')">
+        <span class="nav-icon">🕐</span><span class="nav-label">Recientes</span>
+      </button>
+      <button class="nav-item" id="nav-starred" onclick="App.navTo('starred')">
+        <span class="nav-icon">⭐</span><span class="nav-label">Favoritos</span>
+      </button>
+      <button class="nav-item" id="nav-settings" onclick="App.navTo('settings')">
+        <span class="nav-icon">⚙️</span><span class="nav-label">Ajustes</span>
+      </button>
+    </nav>
+
+    <!-- FAB -->
+    <button class="fab" id="fab" onclick="App.toggleFab()">＋</button>
+    <div class="fab-menu" id="fab-menu">
+      <div class="fab-menu-item" onclick="App.triggerUpload('file')">
+        <div class="fab-menu-label">Subir Archivo</div>
+        <button class="fab-menu-btn" style="background:linear-gradient(135deg,#4f8ef7,#7c5af7)">📎</button>
+      </div>
+      <div class="fab-menu-item" onclick="App.triggerUpload('image')">
+        <div class="fab-menu-label">Subir Foto/Video</div>
+        <button class="fab-menu-btn" style="background:linear-gradient(135deg,#4fc3f7,#4f8ef7)">📷</button>
+      </div>
+      <div class="fab-menu-item" onclick="App.showNewFolderModal()">
+        <div class="fab-menu-label">Nueva Carpeta</div>
+        <button class="fab-menu-btn" style="background:linear-gradient(135deg,#f7a84f,#f74f6b)">📁</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTEXT MENU -->
+  <div class="context-menu" id="context-menu">
+    <div class="context-item" onclick="App.ctxAction('open')">👁️ Abrir</div>
+    <div class="context-item" onclick="App.ctxAction('download')">⬇️ Descargar</div>
+    <div class="context-item" onclick="App.ctxAction('star')">⭐ Favorito</div>
+    <div class="context-item" onclick="App.ctxAction('share')">🔗 Compartir</div>
+    <div class="context-sep"></div>
+    <div class="context-item danger" onclick="App.ctxAction('delete')">🗑️ Eliminar</div>
+  </div>
+
+  <!-- NEW FOLDER MODAL -->
+  <div class="modal-overlay" id="modal-folder">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Nueva Carpeta</div>
+      <div class="modal-sub">Crea un Canal privado de Telegram como carpeta</div>
+      <input type="text" class="modal-input" id="folder-name-input" placeholder="Nombre de la carpeta...">
+      <button class="btn btn-primary" onclick="App.createFolder()">Crear Carpeta</button>
+      <button class="btn btn-ghost" onclick="App.closeModal('modal-folder')">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- PREVIEW MODAL -->
+  <div class="modal-overlay preview-overlay" id="modal-preview">
+    <div class="modal preview-modal">
+      <div class="preview-modal-inner">
+        <div class="preview-header">
+          <button class="icon-btn" onclick="App.closeModal('modal-preview')">✕</button>
+          <div class="preview-title" id="preview-title">Archivo</div>
+          <button class="icon-btn" onclick="App.downloadCurrent()">⬇️</button>
+        </div>
+        <div class="preview-body" id="preview-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UPLOAD TOAST -->
+  <div class="upload-toast" id="upload-toast">
+    <div class="upload-toast-name" id="upload-name">Subiendo...</div>
+    <div class="upload-toast-track">
+      <div class="upload-toast-fill" id="upload-fill" style="width:0%"></div>
+    </div>
+    <div class="upload-toast-meta">
+      <span id="upload-speed">—</span>
+      <span id="upload-pct">0%</span>
+    </div>
+  </div>
+
+  <!-- TOASTS -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- HIDDEN FILE INPUTS -->
+  <input type="file" id="file-input" style="display:none" multiple onchange="App.handleFiles(this)">
+  <input type="file" id="image-input" style="display:none" multiple accept="image/*,video/*" onchange="App.handleFiles(this)">
+</div>
+
+<script type="module">
+// ══════════════════════════════════════════════════════
+//  TG DRIVE PWA  —  @mtproto/core via esm.sh
+// ══════════════════════════════════════════════════════
+import MTProto from 'https://esm.sh/@mtproto/core@6.3.0?bundle';
+
+// ── UTILS ───────────────────────────────────────────
+const FT = {
+  image:   { exts:['jpg','jpeg','png','gif','webp','bmp','heic','avif'], icon:'🖼️', cls:'ft-image'   },
+  video:   { exts:['mp4','mkv','avi','mov','webm','m4v','3gp'],          icon:'🎬', cls:'ft-video'   },
+  audio:   { exts:['mp3','flac','ogg','m4a','wav','aac','opus'],         icon:'🎵', cls:'ft-audio'   },
+  pdf:     { exts:['pdf'],                                                icon:'📕', cls:'ft-pdf'     },
+  doc:     { exts:['doc','docx','xls','xlsx','ppt','pptx','txt','md','csv'], icon:'📄', cls:'ft-doc' },
+  archive: { exts:['zip','rar','7z','tar','gz','bz2'],                   icon:'📦', cls:'ft-archive' },
+};
+
+function fileType(name='') {
+  const ext = name.split('.').pop().toLowerCase();
+  for (const [type,info] of Object.entries(FT))
+    if (info.exts.includes(ext)) return { ...info, type };
+  return { icon:'📎', cls:'ft-other', type:'other' };
+}
+
+function fmtSize(b) {
+  if (!b) return '—';
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b/1024).toFixed(1)+' KB';
+  if (b < 1073741824) return (b/1048576).toFixed(1)+' MB';
+  return (b/1073741824).toFixed(2)+' GB';
+}
+
+function fmtDate(ts) {
+  if (!ts) return '';
+  return new Date(ts*1000).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+}
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
+
+function mime(name) {
+  const e = name.split('.').pop().toLowerCase();
+  return ({jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',gif:'image/gif',webp:'image/webp',
+    mp4:'video/mp4',webm:'video/webm',mp3:'audio/mpeg',ogg:'audio/ogg',
+    flac:'audio/flac',m4a:'audio/mp4',wav:'audio/wav',pdf:'application/pdf'})[e]||'application/octet-stream';
+}
+
+function randBigInt() { return BigInt(Math.floor(Math.random()*Number.MAX_SAFE_INTEGER)); }
+
+// ── TOAST ───────────────────────────────────────────
+function toast(msg, type='info', ms=3500) {
+  const icons={info:'ℹ️',success:'✅',error:'❌'};
+  const el=document.createElement('div');
+  el.className=`toast ${type}`;
+  el.innerHTML=`<span>${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(()=>el.remove(),ms);
+}
+
+// ── STATE ───────────────────────────────────────────
+let mtproto = null;
+let folder  = null;   // current folder {id, accessHash, name}
+let stack   = [];     // nav stack
+let files   = [];     // current message list
+let dirs    = [];     // channels (folders)
+let grid    = true;
+let fabOpen = false;
+let ctxTgt  = null;
+let codeHash= null;
+let preview = null;
+let navSec  = 'files';
+let starred = JSON.parse(localStorage.getItem('tgd_starred')||'[]');
+let recent  = JSON.parse(localStorage.getItem('tgd_recent')||'[]');
+let query   = '';
+
+// ── MTPROTO ─────────────────────────────────────────
+function buildClient(apiId, apiHash) {
+  return new MTProto({ api_id: apiId, api_hash: apiHash });
+}
+
+async function api(method, params={}) {
+  try {
+    return await mtproto.call(method, params);
+  } catch(e) {
+    const msg = e.error_message || '';
+    if (/NETWORK_MIGRATE_(\d+)/.test(msg)||/PHONE_MIGRATE_(\d+)/.test(msg)||/USER_MIGRATE_(\d+)/.test(msg)) {
+      const dc = parseInt(msg.match(/(\d+)$/)[1]);
+      await mtproto.setDefaultDc(dc);
+      return mtproto.call(method, params);
+    }
+    throw e;
+  }
+}
+
+// ── AUTH ────────────────────────────────────────────
+function goToStep(id) {
+  document.querySelectorAll('.auth-step').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goToPhone() {
+  const id   = document.getElementById('inp-api-id').value.trim();
+  const hash = document.getElementById('inp-api-hash').value.trim();
+  if (!id||!hash){ toast('Ingresa API ID y API Hash','error'); return; }
+  localStorage.setItem('tgd_api_id', id);
+  localStorage.setItem('tgd_api_hash', hash);
+  mtproto = buildClient(parseInt(id), hash);
+  goToStep('step-phone');
+}
+
+async function sendCode() {
+  const phone = document.getElementById('inp-phone').value.trim();
+  if (!phone){ toast('Ingresa tu número','error'); return; }
+  const btn = document.getElementById('btn-send-code');
+  btn.disabled=true; btn.textContent='Enviando...';
+  try {
+    const r = await api('auth.sendCode',{
+      phone_number: phone,
+      settings: { _:'codeSettings' }
+    });
+    codeHash = r.phone_code_hash;
+    localStorage.setItem('tgd_phone', phone);
+    goToStep('step-code');
+    setupOTP();
+    toast('¡Código enviado a Telegram!','success');
+  } catch(e) {
+    toast('Error: '+(e.error_message||e.message||'Fallo'),'error');
+  } finally {
+    btn.disabled=false; btn.textContent='Enviar Código →';
+  }
+}
+
+function setupOTP() {
+  const ds = [...document.querySelectorAll('.otp-digit')];
+  ds.forEach((inp,i)=>{
+    inp.value='';
+    inp.oninput=()=>{ inp.value=inp.value.replace(/\D/g,'').slice(-1); if(inp.value&&i<ds.length-1) ds[i+1].focus(); };
+    inp.onkeydown=e=>{ if(e.key==='Backspace'&&!inp.value&&i>0) ds[i-1].focus(); };
+  });
+  ds[0].focus();
+}
+
+async function verifyCode() {
+  const code = [...document.querySelectorAll('.otp-digit')].map(i=>i.value).join('');
+  if (code.length<5){ toast('Código incompleto','error'); return; }
+  const btn=document.getElementById('btn-verify');
+  btn.disabled=true; btn.textContent='Verificando...';
+  try {
+    await api('auth.signIn',{
+      phone_number: localStorage.getItem('tgd_phone'),
+      phone_code_hash: codeHash,
+      phone_code: code
+    });
+    await startApp();
+  } catch(e) {
+    if ((e.error_message||'').includes('SESSION_PASSWORD_NEEDED')) {
+      goToStep('step-2fa');
+    } else {
+      toast('Código inválido: '+(e.error_message||e.message),'error');
+      btn.disabled=false; btn.textContent='Verificar →';
+    }
+  }
+}
+
+async function verify2FA() {
+  const pw = document.getElementById('inp-2fa').value;
+  if (!pw) return;
+  try {
+    const pwInfo = await api('account.getPassword');
+    // Use SRP from mtproto/core utilities
+    const { getSRPParams } = await import('https://esm.sh/@mtproto/core@6.3.0/src/utils/crypto/srp.js');
+    const srp = await getSRPParams({
+      g: pwInfo.current_algo.g,
+      p: pwInfo.current_algo.p,
+      salt1: pwInfo.current_algo.salt1,
+      salt2: pwInfo.current_algo.salt2,
+      gB: pwInfo.srp_B,
+      password: pw,
+    });
+    await api('auth.checkPassword',{ password: { _:'inputCheckPasswordSRP', srp_id: pwInfo.srp_id, ...srp } });
+    await startApp();
+  } catch(e) {
+    toast('Contraseña incorrecta','error');
+    console.error(e);
+  }
+}
+
+// ── INIT ────────────────────────────────────────────
+async function init() {
+  const apiId  = parseInt(localStorage.getItem('tgd_api_id')||'0');
+  const apiHash = localStorage.getItem('tgd_api_hash')||'';
+  if (apiId) document.getElementById('inp-api-id').value = apiId;
+  if (apiHash) document.getElementById('inp-api-hash').value = apiHash;
+
+  if (apiId && apiHash) {
+    mtproto = buildClient(apiId, apiHash);
+    try {
+      await api('users.getFullUser',{ id:{_:'inputUserSelf'} });
+      await startApp(); return;
+    } catch(e) { /* not logged in */ }
+  }
+}
+
+async function startApp() {
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('main-app').style.display='flex';
+  try {
+    const r = await api('users.getFullUser',{ id:{_:'inputUserSelf'} });
+    const u = (r.users||[])[0]||{};
+    document.getElementById('settings-username').textContent =
+      [u.first_name,u.last_name].filter(Boolean).join(' ')||u.username||'Usuario';
+    document.getElementById('settings-phone').textContent =
+      u.phone ? '+'+u.phone : 'Telegram';
+  } catch(e){}
+  await loadRoot();
+}
+
+// ── LOAD FILES ───────────────────────────────────────
+async function loadRoot() {
+  folder=null; stack=[];
+  updateBreadcrumb(); renderLoading();
+  try {
+    const r = await api('messages.getDialogs',{
+      offset_date:0, offset_id:0,
+      offset_peer:{_:'inputPeerEmpty'},
+      limit:100, hash:0
+    });
+    dirs = (r.chats||[])
+      .filter(c=>c._==='channel'&&c.creator)
+      .map(c=>({ id:c.id, accessHash:c.access_hash, name:c.title }));
+    await loadMsgs(null);
+  } catch(e) { renderErr(e.error_message||e.message); }
+}
+
+async function loadMsgs(f) {
+  renderLoading(); files=[];
+  try {
+    const peer = f
+      ? {_:'inputPeerChannel', channel_id:f.id, access_hash:f.accessHash}
+      : {_:'inputPeerSelf'};
+    const r = await api('messages.getHistory',{
+      peer, offset_id:0, offset_date:0,
+      add_offset:0, limit:100, max_id:0, min_id:0, hash:0
+    });
+    files = (r.messages||[])
+      .filter(m=>m.media&&(m.media._==='messageMediaDocument'||m.media._==='messageMediaPhoto'))
+      .map(m=>{
+        let name='',size=0;
+        if (m.media._==='messageMediaDocument') {
+          const doc=m.media.document;
+          const na=(doc.attributes||[]).find(a=>a._==='documentAttributeFilename');
+          name=na?.file_name||('file_'+m.id);
+          size=doc.size||0;
+        } else {
+          name=`foto_${m.id}.jpg`;
+          const sz=(m.media.photo?.sizes||[]).filter(s=>s._==='photoSize').slice(-1)[0];
+          size=sz?.size||0;
+        }
+        const ft=fileType(name);
+        return { id:m.id, name, size, date:m.date, raw:m, ...ft };
+      });
+    renderArea();
+  } catch(e) { renderErr(e.error_message||e.message); }
+}
+
+async function openDir(d) {
+  stack.push(d); folder=d;
+  updateBreadcrumb();
+  await loadMsgs(d);
+}
+
+function navToRoot() { stack=[]; folder=null; updateBreadcrumb(); loadMsgs(null); }
+
+async function navBC(idx) {
+  if(idx<0){ navToRoot(); return; }
+  stack=stack.slice(0,idx+1); folder=stack[idx];
+  updateBreadcrumb(); await loadMsgs(folder);
+}
+
+function updateBreadcrumb() {
+  const bc=document.getElementById('breadcrumb');
+  let h=`<span class="breadcrumb-item ${stack.length===0?'active':''}" onclick="App.navToRoot()">Home</span>`;
+  stack.forEach((item,i)=>{
+    h+=`<span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-item ${i===stack.length-1?'active':''}" onclick="App.navBC(${i})">${esc(item.name)}</span>`;
+  });
+  bc.innerHTML=h;
+}
+
+// ── RENDER ──────────────────────────────────────────
+function renderLoading() {
+  document.getElementById('file-content').innerHTML=
+    `<div class="empty-state"><div class="loading-spinner"></div><h3>Cargando...</h3></div>`;
+}
+
+function renderErr(msg) {
+  document.getElementById('file-content').innerHTML=
+    `<div class="empty-state"><div class="empty-icon">⚠️</div><h3>Error</h3><p>${esc(msg||'')}</p></div>`;
+}
+
+function renderArea() {
+  const q=query.toLowerCase();
+  const fd = q ? dirs.filter(d=>d.name.toLowerCase().includes(q)) : dirs;
+  const fa = q ? files.filter(f=>f.name.toLowerCase().includes(q)) : files;
+  let h='';
+  if (!q&&fd.length) {
+    h+=`<div class="section-header">📁 Carpetas (${fd.length})</div><div class="folders-grid">`;
+    fd.forEach(d=>{
+      h+=`<div class="folder-item" onclick="App.openDirById(${d.id})" oncontextmenu="App.ctxShow(event,'dir',${d.id})">
+        <div class="folder-icon">📁</div>
+        <div class="folder-name">${esc(d.name)}</div>
+        <div class="folder-count">Canal</div></div>`;
+    });
+    h+='</div>';
+  }
+  if (fa.length) {
+    h+=`<div class="section-header">📎 Archivos (${fa.length})</div>
+        <div class="files-grid${grid?'':' list-view'}">`;
+    fa.forEach(f=>{
+      const vid=f.type==='video', aud=f.type==='audio';
+      h+=`<div class="file-item" onclick="App.openFile(${f.id})" oncontextmenu="App.ctxShow(event,'file',${f.id})">`;
+      if (grid) {
+        h+=`<div class="file-thumb ${f.cls}"><span>${f.icon}</span>${vid||aud?'<div class="play-overlay">▶</div>':''}</div>
+            <div class="file-info"><div class="file-name">${esc(f.name)}</div><div class="file-meta">${fmtSize(f.size)} · ${fmtDate(f.date)}</div></div>`;
+      } else {
+        h+=`<div class="file-thumb ${f.cls}" style="width:40px;height:40px;font-size:20px"><span>${f.icon}</span></div>
+            <div class="file-info"><div class="file-name">${esc(f.name)}</div><div class="file-meta">${fmtSize(f.size)} · ${fmtDate(f.date)}</div></div>`;
+      }
+      h+='</div>';
+    });
+    h+='</div>';
+  }
+  if (!fd.length&&!fa.length) {
+    h=`<div class="empty-state"><div class="empty-icon">${q?'🔍':'☁️'}</div>
+       <h3>${q?'Sin resultados':'Sin archivos aún'}</h3>
+       <p>${q?'Intenta otra búsqueda':'Sube archivos con el botón +'}</p></div>`;
+  }
+  document.getElementById('file-content').innerHTML=h;
+}
+
+function renderSpecial(list, title, icon, empty) {
+  if (!list.length) {
+    document.getElementById('file-content').innerHTML=
+      `<div class="empty-state"><div class="empty-icon">${icon}</div><h3>${empty}</h3></div>`;
+    return;
+  }
+  let h=`<div class="section-header">${icon} ${title} (${list.length})</div>
+         <div class="files-grid${grid?'':' list-view'}">`;
+  list.forEach(f=>{
+    h+=`<div class="file-item" onclick="App.openFile(${f.id})" oncontextmenu="App.ctxShow(event,'file',${f.id})">`;
+    if (grid) {
+      h+=`<div class="file-thumb ${f.cls}"><span>${f.icon}</span></div>
+          <div class="file-info"><div class="file-name">${esc(f.name)}</div><div class="file-meta">${fmtSize(f.size)}</div></div>`;
+    } else {
+      h+=`<div class="file-thumb ${f.cls}" style="width:40px;height:40px;font-size:20px"><span>${f.icon}</span></div>
+          <div class="file-info"><div class="file-name">${esc(f.name)}</div><div class="file-meta">${fmtSize(f.size)}</div></div>`;
+    }
+    h+='</div>';
+  });
+  h+='</div>';
+  document.getElementById('file-content').innerHTML=h;
+}
+
+// ── UPLOAD ──────────────────────────────────────────
+function triggerUpload(type) {
+  closeFab();
+  document.getElementById(type==='image'?'image-input':'file-input').click();
+}
+
+async function handleFiles(input) {
+  const list=[...input.files]; input.value='';
+  for (const f of list) await uploadFile(f);
+  await loadMsgs(folder);
+}
+
+async function uploadFile(file) {
+  const tst=document.getElementById('upload-toast');
+  const nm=document.getElementById('upload-name');
+  const fl=document.getElementById('upload-fill');
+  const pc=document.getElementById('upload-pct');
+  const sp=document.getElementById('upload-speed');
+  tst.classList.add('visible');
+  nm.textContent=file.name; fl.style.width='0%'; pc.textContent='0%';
+
+  try {
+    const PART=512*1024;
+    const parts=Math.ceil(file.size/PART);
+    const fid=randBigInt();
+    const big=file.size>10*1024*1024;
+    const t0=Date.now();
+
+    for (let i=0;i<parts;i++) {
+      const buf=await file.slice(i*PART,(i+1)*PART).arrayBuffer();
+      if (big) {
+        await api('upload.saveBigFilePart',{
+          file_id:fid, file_part:i, file_total_parts:parts, bytes:new Uint8Array(buf)
+        });
+      } else {
+        await api('upload.saveFilePart',{
+          file_id:fid, file_part:i, bytes:new Uint8Array(buf)
+        });
+      }
+      const pct=Math.round(((i+1)/parts)*100);
+      fl.style.width=pct+'%'; pc.textContent=pct+'%';
+      const elapsed=(Date.now()-t0)/1000||.001;
+      sp.textContent=fmtSize(((i+1)*PART)/elapsed)+'/s';
+    }
+
+    const inputFile=big
+      ? {_:'inputFileBig', id:fid, parts, name:file.name}
+      : {_:'inputFile',    id:fid, parts, name:file.name, md5_checksum:''};
+
+    const peer=folder
+      ? {_:'inputPeerChannel', channel_id:folder.id, access_hash:folder.accessHash}
+      : {_:'inputPeerSelf'};
+
+    await api('messages.sendMedia',{
+      peer,
+      media:{
+        _:'inputMediaUploadedDocument',
+        file:inputFile,
+        mime_type:mime(file.name),
+        attributes:[{_:'documentAttributeFilename',file_name:file.name}]
+      },
+      message:file.name,
+      random_id:randBigInt()
+    });
+    toast('¡Subido: '+file.name,'success');
+  } catch(e) {
+    toast('Error al subir: '+(e.error_message||e.message),'error');
+    console.error(e);
+  } finally {
+    fl.style.width='100%';
+    setTimeout(()=>tst.classList.remove('visible'),1500);
+  }
+}
+
+function onDragOver(e){ e.preventDefault(); document.getElementById('file-area').classList.add('drag-over'); }
+function onDragLeave(){ document.getElementById('file-area').classList.remove('drag-over'); }
+async function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('file-area').classList.remove('drag-over');
+  for(const f of [...e.dataTransfer.files]) await uploadFile(f);
+  await loadMsgs(folder);
+}
+
+// ── FILE PREVIEW ────────────────────────────────────
+async function openFile(id) {
+  const f=files.find(x=>x.id===id); if(!f) return;
+  recent=[f,...recent.filter(r=>r.id!==id)].slice(0,50);
+  localStorage.setItem('tgd_recent',JSON.stringify(recent));
+  preview=f;
+  document.getElementById('preview-title').textContent=f.name;
+  const body=document.getElementById('preview-body');
+  body.innerHTML='<div class="loading-spinner"></div>';
+  showModal('modal-preview');
+  try {
+    const buf=await dlBuffer(f);
+    const blob=new Blob([buf],{type:mime(f.name)});
+    const url=URL.createObjectURL(blob);
+    if (f.type==='image') {
+      body.innerHTML=`<img src="${url}" alt="${esc(f.name)}" style="max-width:100%;max-height:calc(100vh - 120px);object-fit:contain;border-radius:12px">`;
+    } else if (f.type==='video') {
+      body.innerHTML=`<video controls autoplay playsinline src="${url}" style="max-width:100%;max-height:calc(100vh - 120px);border-radius:12px"></video>`;
+    } else if (f.type==='audio') {
+      body.innerHTML=`<div style="width:100%;padding:24px;text-align:center">
+        <div style="font-size:72px;margin-bottom:16px">🎵</div>
+        <div style="font-weight:700;font-size:16px;margin-bottom:16px">${esc(f.name)}</div>
+        <audio controls autoplay src="${url}" style="width:100%"></audio></div>`;
+    } else if (f.type==='pdf') {
+      body.innerHTML=`<iframe src="${url}" style="width:100%;height:calc(100vh - 120px);border:none;border-radius:8px"></iframe>`;
+    } else {
+      body.innerHTML=`<div style="text-align:center;padding:40px">
+        <div style="font-size:80px;margin-bottom:20px">${f.icon}</div>
+        <div style="font-weight:700;margin-bottom:8px">${esc(f.name)}</div>
+        <div style="color:var(--text2);font-family:var(--mono);font-size:13px;margin-bottom:24px">${fmtSize(f.size)}</div>
+        <button class="btn btn-primary" style="width:auto;padding:12px 28px" onclick="App.downloadCurrent()">⬇️ Descargar</button></div>`;
+    }
+  } catch(e) {
+    body.innerHTML=`<div style="text-align:center;padding:40px">
+      <div style="font-size:64px;margin-bottom:16px">⚠️</div>
+      <div style="color:var(--danger)">No se pudo cargar la vista previa</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:8px">${esc(e.error_message||e.message||'')}</div>
+      <button class="btn btn-ghost" style="margin-top:16px;width:auto;padding:10px 20px" onclick="App.downloadCurrent()">⬇️ Descargar en su lugar</button></div>`;
+  }
+}
+
+async function dlBuffer(f) {
+  const m=f.raw;
+  let loc;
+  if (m.media._==='messageMediaDocument') {
+    const d=m.media.document;
+    loc={_:'inputDocumentFileLocation',id:d.id,access_hash:d.access_hash,file_reference:d.file_reference,thumb_size:''};
+  } else {
+    const p=m.media.photo;
+    const sz=(p.sizes||[]).filter(s=>s._==='photoSize').slice(-1)[0];
+    loc={_:'inputPhotoFileLocation',id:p.id,access_hash:p.access_hash,file_reference:p.file_reference,thumb_size:sz?.type||'y'};
+  }
+  const PART=512*1024;
+  const parts=Math.ceil((f.size||PART)/PART);
+  const chunks=[];
+  for(let i=0;i<parts;i++){
+    const r=await api('upload.getFile',{location:loc,offset:i*PART,limit:PART,precise:true});
+    chunks.push(r.bytes);
+  }
+  const total=chunks.reduce((s,c)=>s+c.length,0);
+  const out=new Uint8Array(total);
+  let off=0; for(const c of chunks){out.set(c,off);off+=c.length;}
+  return out;
+}
+
+async function downloadCurrent() {
+  if (!preview) return;
+  toast('Descargando...','info');
+  try {
+    const buf=await dlBuffer(preview);
+    const blob=new Blob([buf]);
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=preview.name; a.click();
+    URL.revokeObjectURL(url);
+    toast('¡Descargado!','success');
+  } catch(e){ toast('Error: '+(e.error_message||e.message),'error'); }
+}
+
+// ── CONTEXT MENU ────────────────────────────────────
+function ctxShow(e, type, id) {
+  e.preventDefault();
+  ctxTgt={type,id};
+  const m=document.getElementById('context-menu');
+  m.classList.add('visible');
+  m.style.left=Math.min(e.clientX,window.innerWidth-200)+'px';
+  m.style.top=Math.min(e.clientY,window.innerHeight-240)+'px';
+}
+
+function ctxAction(action) {
+  document.getElementById('context-menu').classList.remove('visible');
+  if(!ctxTgt) return;
+  const {type,id}=ctxTgt;
+  if (action==='open')     type==='file'?openFile(id):openDirById(id);
+  else if (action==='download') dlDirect(id);
+  else if (action==='star')     toggleStar(id);
+  else if (action==='delete')   delFile(id);
+  else if (action==='share')    shareFile(id);
+}
+
+function toggleStar(id) {
+  if(starred.includes(id)){ starred=starred.filter(s=>s!==id); toast('Quitado de favoritos','info'); }
+  else { starred.push(id); toast('Añadido a favoritos ⭐','success'); }
+  localStorage.setItem('tgd_starred',JSON.stringify(starred));
+  renderArea();
+}
+
+async function dlDirect(id) {
+  const f=files.find(x=>x.id===id); if(!f) return;
+  preview=f; await downloadCurrent();
+}
+
+async function delFile(id) {
+  if(!confirm('¿Eliminar este archivo?')) return;
+  try {
+    await api('messages.deleteMessages',{ id:[id], revoke:true });
+    files=files.filter(f=>f.id!==id);
+    renderArea();
+    toast('Archivo eliminado','success');
+  } catch(e){ toast('Error al eliminar: '+(e.error_message||e.message),'error'); }
+}
+
+async function shareFile(id) {
+  const f=files.find(x=>x.id===id); if(!f) return;
+  if(navigator.share) navigator.share({title:f.name,text:'Archivo de TG Drive: '+f.name});
+  else toast('Compartir no disponible','error');
+}
+
+// ── FOLDERS ─────────────────────────────────────────
+function openDirById(id) {
+  const d=dirs.find(x=>x.id===id); if(d) openDir(d);
+}
+
+async function createFolder() {
+  const name=document.getElementById('folder-name-input').value.trim();
+  if(!name){ toast('Ingresa un nombre','error'); return; }
+  try {
+    const r=await api('channels.createChannel',{
+      title:name, about:'TG Drive Folder', broadcast:true, megagroup:false
+    });
+    const ch=(r.chats||[])[0];
+    if(ch){
+      dirs.push({id:ch.id,accessHash:ch.access_hash,name:ch.title});
+      closeModal('modal-folder');
+      document.getElementById('folder-name-input').value='';
+      renderArea();
+      toast('¡Carpeta creada!','success');
+    }
+  } catch(e){ toast('Error: '+(e.error_message||e.message),'error'); }
+}
+
+// ── NAVIGATION ──────────────────────────────────────
+function navTo(sec) {
+  navSec=sec;
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('nav-'+sec)?.classList.add('active');
+  const fab=document.getElementById('fab'), fm=document.getElementById('fab-menu');
+  if(sec==='files'){
+    document.getElementById('page-files').classList.add('active');
+    fab.style.display='flex'; renderArea();
+  } else if(sec==='settings'){
+    document.getElementById('page-settings').classList.add('active');
+    fab.style.display='none'; fm.classList.remove('open');
+  } else if(sec==='recent'){
+    document.getElementById('page-files').classList.add('active');
+    fab.style.display='flex';
+    renderSpecial(recent,'Recientes','🕐','Sin archivos recientes');
+  } else if(sec==='starred'){
+    document.getElementById('page-files').classList.add('active');
+    fab.style.display='flex';
+    renderSpecial(files.filter(f=>starred.includes(f.id)),'Favoritos','⭐','Sin favoritos');
+  }
+}
+
+// ── FAB ─────────────────────────────────────────────
+function toggleFab() {
+  fabOpen=!fabOpen;
+  document.getElementById('fab-menu').classList.toggle('open',fabOpen);
+  const fab=document.getElementById('fab');
+  fab.textContent=fabOpen?'✕':'＋';
+  fab.style.transform=fabOpen?'rotate(45deg) scale(1.05)':'';
+}
+
+function closeFab() {
+  fabOpen=false;
+  document.getElementById('fab-menu').classList.remove('open');
+  const fab=document.getElementById('fab');
+  fab.textContent='＋'; fab.style.transform='';
+}
+
+// ── MODALS ──────────────────────────────────────────
+function showModal(id){ document.getElementById(id).classList.add('visible'); }
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('visible');
+  if(id==='modal-preview'){
+    const b=document.getElementById('preview-body');
+    b.querySelectorAll('video,audio').forEach(e=>e.pause());
+    b.innerHTML='';
+  }
+}
+
+function showNewFolderModal() {
+  closeFab(); showModal('modal-folder');
+  setTimeout(()=>document.getElementById('folder-name-input').focus(),300);
+}
+
+// ── MISC ────────────────────────────────────────────
+function toggleView() {
+  grid=!grid;
+  document.getElementById('btn-view-toggle').textContent=grid?'⊞':'☰';
+  document.getElementById('view-mode-label').textContent=grid?'Grid':'Lista';
+  navTo(navSec);
+}
+
+function search(q){ query=q; if(navSec==='files') renderArea(); }
+async function refresh(){ toast('Actualizando...','info'); await loadMsgs(folder); }
+function clearCache(){ localStorage.removeItem('tgd_recent'); recent=[]; toast('Caché limpiado','success'); }
+
+function logout() {
+  if(!confirm('¿Cerrar sesión y borrar credenciales?')) return;
+  ['tgd_api_id','tgd_api_hash','tgd_phone'].forEach(k=>localStorage.removeItem(k));
+  try{ mtproto?.call('auth.logOut'); }catch(e){}
+  location.reload();
+}
+
+// ── EVENTS ──────────────────────────────────────────
+document.addEventListener('click', e=>{
+  if(!e.target.closest('#context-menu')) document.getElementById('context-menu').classList.remove('visible');
+  if(!e.target.closest('#fab')&&!e.target.closest('#fab-menu')) closeFab();
+  document.querySelectorAll('.modal-overlay').forEach(m=>{ if(e.target===m) closeModal(m.id); });
+});
+
+document.addEventListener('paste', e=>{
+  const ds=document.querySelectorAll('.otp-digit'); if(!ds.length) return;
+  const txt=(e.clipboardData.getData('text')||'').replace(/\D/g,'').slice(0,5);
+  [...txt].forEach((c,i)=>{ if(ds[i]) ds[i].value=c; });
+  if(txt.length>=5) document.getElementById('btn-verify')?.click();
+});
+
+// ── EXPOSE ──────────────────────────────────────────
+window.App = {
+  goToPhone, goToStep, sendCode, verifyCode, verify2FA,
+  openDirById, openFile, navToRoot, navBC,
+  ctxShow, ctxAction, toggleStar, downloadCurrent,
+  toggleView, search, refresh, clearCache, logout,
+  navTo, triggerUpload, handleFiles, onDragOver, onDragLeave, onDrop,
+  toggleFab, closeFab, showNewFolderModal, createFolder,
+  showModal, closeModal,
+};
+
+// ── SERVICE WORKER ──────────────────────────────────
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+
+// ── BOOT ────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
